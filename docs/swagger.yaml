@@ -1,0 +1,275 @@
+basePath: /api
+definitions:
+  main.CreateStaffRequest:
+    properties:
+      hospital_id:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - hospital_id
+    - password
+    - username
+    type: object
+  main.HospitalAPatientResponse:
+    properties:
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name_en:
+        type: string
+      first_name_th:
+        type: string
+      gender:
+        type: string
+      last_name_en:
+        type: string
+      last_name_th:
+        type: string
+      middle_name_en:
+        type: string
+      middle_name_th:
+        type: string
+      national_id:
+        type: string
+      passport_id:
+        type: string
+      patient_hn:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  main.LoginRequest:
+    properties:
+      hospital:
+        description: Hospital ID for login
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - hospital
+    - password
+    - username
+    type: object
+  main.Patient:
+    properties:
+      created_at:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      first_name_en:
+        type: string
+      first_name_th:
+        type: string
+      gender:
+        type: string
+      hospital_id:
+        type: string
+      id:
+        description: Internal Middleware system ID
+        type: integer
+      last_name_en:
+        type: string
+      last_name_th:
+        type: string
+      middle_name_en:
+        type: string
+      middle_name_th:
+        type: string
+      national_id:
+        type: string
+      passport_id:
+        type: string
+      patient_hn:
+        type: string
+      phone_number:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:80
+info:
+  contact: {}
+  description: This is a Hospital Middleware API server.
+  title: Hospital Middleware API
+  version: "1.0"
+paths:
+  /his/hospital-a/patient/search/{id_type}/{id_value}:
+    get:
+      consumes:
+      - application/json
+      description: Simulates fetching patient data directly from an external Hospital
+        A HIS using National ID or Passport ID.
+      parameters:
+      - description: Type of ID (national_id or passport_id)
+        in: path
+        name: id_type
+        required: true
+        type: string
+      - description: Value of the ID to search
+        in: path
+        name: id_value
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Patient data from HIS
+          schema:
+            $ref: '#/definitions/main.HospitalAPatientResponse'
+        "400":
+          description: Bad Request - Invalid ID type
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found - Patient not found in HIS
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error - Failed to retrieve patient from HIS
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get patient from Hospital A HIS
+      tags:
+      - HIS (Mock)
+  /patient/search/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Searches for a single patient in the middleware database by national_id
+        or passport_id, filtered by the staff's hospital.
+      parameters:
+      - description: National ID or Passport ID of the patient to search for
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Matching patient data
+          schema:
+            $ref: '#/definitions/main.Patient'
+        "401":
+          description: Unauthorized - Missing or invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found - Specific ID not found in authorized hospital or
+            invalid ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error - Failed to search patient
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Search for a patient by National ID or Passport ID
+      tags:
+      - patient
+  /staff/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new staff member account for a hospital.
+      parameters:
+      - description: Staff creation request
+        in: body
+        name: staff
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Staff created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request - Invalid input or invalid hospital_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict - Username already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error - Failed to create staff
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new staff member
+      tags:
+      - staff
+  /staff/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a staff member and returns a JWT token.
+      parameters:
+      - description: Staff login request
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/main.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful, returns JWT token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request - Invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - Invalid credentials or inactive account
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error - Failed to generate token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Log in a staff member
+      tags:
+      - staff
+swagger: "2.0"

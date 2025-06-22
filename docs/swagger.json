@@ -1,0 +1,411 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a Hospital Middleware API server.",
+        "title": "Hospital Middleware API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:80",
+    "basePath": "/api",
+    "paths": {
+        "/his/hospital-a/patient/search/{id_type}/{id_value}": {
+            "get": {
+                "description": "Simulates fetching patient data directly from an external Hospital A HIS using National ID or Passport ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HIS (Mock)"
+                ],
+                "summary": "Get patient from Hospital A HIS",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Type of ID (national_id or passport_id)",
+                        "name": "id_type",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Value of the ID to search",
+                        "name": "id_value",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Patient data from HIS",
+                        "schema": {
+                            "$ref": "#/definitions/main.HospitalAPatientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid ID type",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Patient not found in HIS",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to retrieve patient from HIS",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patient/search/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Searches for a single patient in the middleware database by national_id or passport_id, filtered by the staff's hospital.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "patient"
+                ],
+                "summary": "Search for a patient by National ID or Passport ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "National ID or Passport ID of the patient to search for",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Matching patient data",
+                        "schema": {
+                            "$ref": "#/definitions/main.Patient"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Missing or invalid token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Specific ID not found in authorized hospital or invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to search patient",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/staff/create": {
+            "post": {
+                "description": "Create a new staff member account for a hospital.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "Create a new staff member",
+                "parameters": [
+                    {
+                        "description": "Staff creation request",
+                        "name": "staff",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateStaffRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Staff created successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or invalid hospital_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - Username already exists",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to create staff",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/staff/login": {
+            "post": {
+                "description": "Authenticates a staff member and returns a JWT token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "Log in a staff member",
+                "parameters": [
+                    {
+                        "description": "Staff login request",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful, returns JWT token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid credentials or inactive account",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to generate token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.CreateStaffRequest": {
+            "type": "object",
+            "required": [
+                "hospital_id",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "hospital_id": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.HospitalAPatientResponse": {
+            "type": "object",
+            "properties": {
+                "date_of_birth": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name_en": {
+                    "type": "string"
+                },
+                "first_name_th": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "last_name_en": {
+                    "type": "string"
+                },
+                "last_name_th": {
+                    "type": "string"
+                },
+                "middle_name_en": {
+                    "type": "string"
+                },
+                "middle_name_th": {
+                    "type": "string"
+                },
+                "national_id": {
+                    "type": "string"
+                },
+                "passport_id": {
+                    "type": "string"
+                },
+                "patient_hn": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.LoginRequest": {
+            "type": "object",
+            "required": [
+                "hospital",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "hospital": {
+                    "description": "Hospital ID for login",
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Patient": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "date_of_birth": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name_en": {
+                    "type": "string"
+                },
+                "first_name_th": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "hospital_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Internal Middleware system ID",
+                    "type": "integer"
+                },
+                "last_name_en": {
+                    "type": "string"
+                },
+                "last_name_th": {
+                    "type": "string"
+                },
+                "middle_name_en": {
+                    "type": "string"
+                },
+                "middle_name_th": {
+                    "type": "string"
+                },
+                "national_id": {
+                    "type": "string"
+                },
+                "passport_id": {
+                    "type": "string"
+                },
+                "patient_hn": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
